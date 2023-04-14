@@ -1,0 +1,26 @@
+- Theater class for different locations
+- Customer class
+- Ticket abstract base class
+    - Gold
+    - Platinum
+    - Silver
+- File handling for tickets and customer information
+
+- Display of seats
+--Platinum--
+A
+B  [1]     [X]
+
+--Gold--
+C
+D
+
+--Silver--
+E
+F
+
+        All eyes this way please! 
+
+- For theater seats Customer [1..10]
+
+- Billing system
