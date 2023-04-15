@@ -54,7 +54,7 @@ public:
 
 Theater::Theater()
 {
-    ifstream movieFile("Movies.txt", ios::app);
+    ifstream movieFile("Movies.txt", ios::in);
 
     int i = 0;
     while (!movieFile.eof())
