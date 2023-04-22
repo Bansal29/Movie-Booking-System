@@ -120,7 +120,8 @@ int Theater::DisplayTimeSlots()
     cout << "Select a time slot" << endl;
     for (int i = 0; i < 5; i++)
     {
-        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to " << timeSlot[i + 1] << ":00" << endl;
+        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to "
+             << timeSlot[i + 1] << ":00" << endl;
     }
     cout << "Slot number: ";
     cin >> choice;
@@ -167,6 +168,94 @@ protected:
 //     Silver() { price = 250; }
 //     void book();
 // };
+
+class Customer
+{
+private:
+    int id;
+    string name, phone, email;
+
+private:
+    void SetName();
+    void SetPhone();
+    void SetEmail();
+    void SaveToFile();
+
+public:
+    void SetDetails();
+};
+
+void Customer::SetDetails()
+{
+    SetName();
+    SetPhone();
+    SetEmail();
+
+    SaveToFile();
+}
+
+void Customer::SetName()
+{
+    cout << "Enter your name: ";
+    cin >> name;
+}
+
+void Customer::SetEmail()
+{
+    int validEmail = 0;
+
+    cout << "Enter your email address: ";
+    cin >> email;
+
+    while (!validEmail)
+    {
+        for (int i = 0; i < email.length(); ++i)
+        {
+            if (email.at(i) == '@')
+            {
+                validEmail = 1;
+                return;
+            }
+        }
+
+        cout << "Invalid email address" << endl;
+        cout << "Enter a valid email address: ";
+        cin >> email;
+    }
+}
+void Customer::SetPhone()
+{
+    cout << "Enter your phone number : ";
+    cin >> phone;
+
+    while (phone.length() != 10)
+    {
+        cout << endl;
+        cout << "Phone number should have 10 digits" << endl;
+        cout << "Enter a valid phone number: ";
+        cin >> phone;
+    }
+}
+
+void Customer::SaveToFile()
+{
+    ofstream customerFile("Customers.txt", ios::app);
+
+    if (customerFile.is_open())
+    {
+        customerFile << endl;
+        customerFile << id << endl;
+        customerFile << name << endl;
+        customerFile << email << endl;
+        customerFile << phone << endl;
+    }
+    else
+    {
+        cout << "Couldn't open file. Does it exist?" << endl;
+    }
+
+    customerFile.close();
+}
 
 int main()
 {
