@@ -68,7 +68,7 @@ Theater::Theater()
 
 int Theater::DisplayMovies()
 {
-    Movie selectedMovie;
+    // Movie selectedMovie;
     int choice;
 
     cout << endl;
@@ -80,34 +80,35 @@ int Theater::DisplayMovies()
 
     cout << "Movie number: ";
     cin >> choice;
-
-    DisplayTimeSlots();
-    DisplayMovieDetails(choice);
-
-    return choice;
+    try
+    {
+        if (choice > 0 && choice <= MOVIE_NUM)
+        {
+            DisplayTimeSlots();
+            DisplayMovieDetails(choice);
+            return choice;
+        }
+        else
+        {
+            throw choice;
+        }
+    }
+    catch (int choice)
+    {
+        cout << "Invalid choice. Enter correct movie number." << endl;
+        return -1;
+    }
 }
 
 void Theater::DisplayMovieDetails(int id)
 {
     int index = id - 1;
-    try
+    if (index >= 0)
     {
-        if (index < MOVIE_NUM && index >= 0)
-        {
-            cout << endl;
-            cout << "Movie Name:\t" << movies[index].name << endl;
-            cout << "Duration:\t" << movies[index].duration << " minutes"
-                 << endl;
-            cout << "Ratings:\t" << movies[index].rating << endl;
-        }
-        else
-        {
-            throw index;
-        }
-    }
-    catch (int index)
-    {
-        cout << "Invalid choice" << endl;
+        cout << endl;
+        cout << "Movie Name:\t" << movies[index].name << endl;
+        cout << "Duration:\t" << movies[index].duration << " minutes" << endl;
+        cout << "Ratings:\t" << movies[index].rating << endl;
     }
 }
 
@@ -119,42 +120,53 @@ int Theater::DisplayTimeSlots()
     cout << "Select a time slot" << endl;
     for (int i = 0; i < 5; i++)
     {
-        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to "
-             << timeSlot[i + 1] << ":00" << endl;
+        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to " << timeSlot[i + 1] << ":00" << endl;
     }
     cout << "Slot number: ";
     cin >> choice;
 
-    return choice;
+    try
+    {
+        if (choice > 0 && choice <= 5)
+        {
+            return choice;
+        }
+        throw choice;
+    }
+    catch (int choice)
+    {
+        cout << "Invalid choice. Enter correct slot number" << endl;
+        return -1;
+    }
 }
 
 class Ticket
 {
 protected:
     int price;
-    virtual void book() = 0;
+    // virtual void book() = 0;
 };
 
-class Platinum : public Ticket
-{
-public:
-    Platinum() { price = 1000; }
-    void book();
-};
-
-class Gold : public Ticket
-{
-public:
-    Gold() { price = 500; }
-    void book();
-};
-
-class Silver : public Ticket
-{
-public:
-    Silver() { price = 250; }
-    void book();
-};
+// class Platinum : public Ticket
+// {
+// public:
+//     Platinum() { price = 1000; }
+//     void book();
+// };
+//
+// class Gold : public Ticket
+// {
+// public:
+//     Gold() { price = 500; }
+//     void book();
+// };
+//
+// class Silver : public Ticket
+// {
+// public:
+//     Silver() { price = 250; }
+//     void book();
+// };
 
 int main()
 {
@@ -164,10 +176,13 @@ int main()
 
     while (ch != 3)
     {
+        // system("clear");
+        // system("CLS");
         cout << endl;
         cout << "[1] Book a Ticket" << endl;
         cout << "[2] Cancel Ticket" << endl;
-        cout << "[3] Exit" << endl;
+        cout << "[3] Generate Bill" << endl;
+        cout << "[4] Exit" << endl;
         cout << "Choice: ";
         cin >> ch;
 
@@ -181,12 +196,19 @@ int main()
 
         case 2:
         {
+            cout << "Cancelling the ticket" << endl;
             break;
         }
 
         case 3:
         {
-            cout << "Exiting..." << endl;
+            cout << "Generating bill" << endl;
+            break;
+        }
+
+        case 4:
+        {
+            cout << "Exiting" << endl;
             break;
         }
 
