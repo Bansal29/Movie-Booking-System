@@ -57,11 +57,14 @@ Theater::Theater()
     ifstream movieFile("Movies.txt", ios::in);
 
     int i = 0;
-    while (!movieFile.eof())
+    if (movieFile.is_open())
     {
-        movies[i].id = i + 1;
-        movieFile >> movies[i];
-        i++;
+        while (!movieFile.eof())
+        {
+            movies[i].id = i + 1;
+            movieFile >> movies[i];
+            i++;
+        }
     }
     movieFile.close();
 }
@@ -120,8 +123,7 @@ int Theater::DisplayTimeSlots()
     cout << "Select a time slot" << endl;
     for (int i = 0; i < 5; i++)
     {
-        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to "
-             << timeSlot[i + 1] << ":00" << endl;
+        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to " << timeSlot[i + 1] << ":00" << endl;
     }
     cout << "Slot number: ";
     cin >> choice;
@@ -171,33 +173,49 @@ protected:
 
 class Customer
 {
-private:
-    int id;
+protected:
+    static int id;
     string name, phone, email;
 
 private:
+    void SetId() { id++; }
     void SetName();
     void SetPhone();
     void SetEmail();
-    void SaveToFile();
 
 public:
     void SetDetails();
+    string GetName() { return name; }
+    string GetPhone() { return phone; }
+    string GetEmail() { return email; }
 };
 
 void Customer::SetDetails()
 {
+    SetId();
     SetName();
     SetPhone();
     SetEmail();
-
-    SaveToFile();
 }
 
 void Customer::SetName()
 {
     cout << "Enter your name: ";
     cin >> name;
+}
+
+void Customer::SetPhone()
+{
+    cout << "Enter your phone number : ";
+    cin >> phone;
+
+    while (phone.length() != 10)
+    {
+        cout << endl;
+        cout << "Phone number should have 10 digits" << endl;
+        cout << "Enter a valid phone number: ";
+        cin >> phone;
+    }
 }
 
 void Customer::SetEmail()
@@ -223,39 +241,103 @@ void Customer::SetEmail()
         cin >> email;
     }
 }
-void Customer::SetPhone()
-{
-    cout << "Enter your phone number : ";
-    cin >> phone;
 
-    while (phone.length() != 10)
+int Customer::id = 0;
+
+class Member : Customer
+{
+private:
+    string accountNumber, password;
+
+private:
+    void SetAcctNum();
+    void SetPassword();
+    void SaveRecord();
+
+public:
+    void Register();
+    void DisplayDetails();
+    bool CheckMember();
+};
+
+void Member::Register()
+{
+    Customer::SetDetails();
+    SetAcctNum();
+    SetPassword();
+
+    SaveRecord();
+}
+
+void Member::SetAcctNum()
+{
+    srand(time(0));
+    accountNumber = to_string((rand() % 9999) + 10000);
+}
+
+void Member::SetPassword()
+{
+    string temp;
+    int flag = 1;
+
+    while (flag)
     {
-        cout << endl;
-        cout << "Phone number should have 10 digits" << endl;
-        cout << "Enter a valid phone number: ";
-        cin >> phone;
+        cout << "Enter your password: ";
+        cin >> password;
+        cout << "Reenter your password: ";
+        cin >> temp;
+        if (temp != password)
+        {
+            cout << "Password does not match" << endl;
+            flag = 1;
+        }
+        else
+        {
+            flag = 0;
+        }
     }
 }
 
-void Customer::SaveToFile()
+void Member::SaveRecord()
 {
-    ofstream customerFile("Customers.txt", ios::app);
+    ofstream memberFile("Members.txt", ios::app);
 
-    if (customerFile.is_open())
+    if (memberFile.is_open())
     {
-        customerFile << endl;
-        customerFile << id << endl;
-        customerFile << name << endl;
-        customerFile << email << endl;
-        customerFile << phone << endl;
+        memberFile << endl;
+        memberFile << id << endl;
+        memberFile << accountNumber << endl;
+        memberFile << name << endl;
+        memberFile << email << endl;
+        memberFile << phone << endl;
+        memberFile << password << endl;
+
+        cout << "Record saved successfully" << endl;
     }
     else
     {
         cout << "Couldn't open file. Does it exist?" << endl;
     }
 
-    customerFile.close();
+    memberFile.close();
 }
+//
+// void Member::CheckMember()
+// {
+//     Member members[100];
+//     int i = 0;
+//
+//     ifstream memberFile("Members.txt", ios::in);
+//
+//     if (memberFile.is_open())
+//     {
+//         while (!memberFile.eof())
+//         {
+//             memberFile >> members[i];
+//             i++;
+//         }
+//     }
+// }
 
 int main()
 {
