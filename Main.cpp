@@ -123,7 +123,8 @@ int Theater::DisplayTimeSlots()
     cout << "Select a time slot" << endl;
     for (int i = 0; i < 5; i++)
     {
-        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to " << timeSlot[i + 1] << ":00" << endl;
+        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to "
+             << timeSlot[i + 1] << ":00" << endl;
     }
     cout << "Slot number: ";
     cin >> choice;
@@ -339,6 +340,57 @@ void Member::SaveRecord()
 //     }
 // }
 
+// helper functions
+
+void Title()
+{
+    const int WIDTH1 = 90;
+    const int WIDTH2 = 20;
+    const string heading = "MOVIE TICKET RESERVATION SYSTEM";
+
+    cout << endl << endl;
+
+    for (int i = 0; i < WIDTH2; i++)
+    {
+        cout << ' ';
+    }
+    for (int i = 0; i < WIDTH1; i++)
+    {
+        cout << '*';
+    }
+
+    cout << endl << endl;
+    for (int i = 0; i < 6; i++)
+    {
+        cout << "\t";
+    }
+    cout << heading;
+    cout << endl << endl;
+
+    for (int i = 0; i < WIDTH2; i++)
+    {
+        cout << ' ';
+    }
+    for (int i = 0; i < WIDTH1; i++)
+    {
+        cout << '*';
+    }
+    cout << endl;
+}
+
+int MainMenu()
+{
+    int choice;
+
+    cout << "[1] Login(for Members)" << endl;
+    cout << "[2] Signup for Membership" << endl;
+    cout << "[3] Continue as guest" << endl;
+    cout << "Choice: ";
+    cin >> choice;
+
+    return choice;
+}
+
 int main()
 {
     Theater theater;
@@ -349,6 +401,15 @@ int main()
     {
         // system("clear");
         // system("CLS");
+        Title();
+
+        switch (MainMenu())
+        {
+        case 1:
+        {
+        }
+        }
+
         cout << endl;
         cout << "[1] Book a Ticket" << endl;
         cout << "[2] Cancel Ticket" << endl;
