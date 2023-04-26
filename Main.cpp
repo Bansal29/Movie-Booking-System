@@ -243,6 +243,7 @@ private:
 public:
     void Register();
 
+    friend class MemberDatabase;
     friend istream& operator>>(istream& file, Member& m);
     friend ostream& operator<<(ostream& file, Member& m);
 };
@@ -306,6 +307,84 @@ ostream& operator<<(ostream& file, Member& m)
     file << "----------" << endl;
 
     return file;
+}
+class MemberDatabase
+{
+private:
+    vector<Member> members;
+
+public:
+    void ReadRecords();
+    void SaveRecord(Member m);
+    void Display();
+    bool CheckMember(string name);
+};
+
+void MemberDatabase::ReadRecords()
+{
+    Member member;
+    ifstream memberFile("Members.txt", ios::in);
+
+    if (memberFile.is_open())
+    {
+        while (!memberFile.eof())
+        {
+            memberFile >> member;
+            members.push_back(member);
+        }
+    }
+    else
+    {
+        cout << "Couldn't open the file" << endl;
+    }
+
+    memberFile.close();
+}
+
+void MemberDatabase::SaveRecord(Member m)
+{
+    ofstream memberFile("Members.txt", ios::app);
+
+    if (memberFile.is_open())
+    {
+        memberFile << m;
+        cout << "Record saved successfully" << endl;
+    }
+    else
+    {
+        cout << "Couldn't open file. Does it exist?" << endl;
+    }
+
+    memberFile.close();
+}
+
+void MemberDatabase::Display()
+{
+    cout << "======================================================\n"
+         << "                   MEMBER INFORMATION                 \n"
+         << "======================================================\n";
+
+    for (int i = 0; i < members.size() - 1; i++)
+    {
+        cout << "\nAccount Number : " << members[i].accountNumber << "\nName           : " << members[i].name
+             << "\nPhone no.      : " << members[i].phone << "\nE-mail         : " << members[i].email
+             << "\n------------------------------------------------------" << endl;
+    }
+}
+
+bool MemberDatabase::CheckMember(string name)
+{
+    bool flag = false;
+    for (int i = 0; i < members.size() - 1; i++)
+    {
+        if (name == members[i].name)
+        {
+            flag = true;
+            break;
+        }
+    }
+
+    return flag;
 }
 
 // void Member::CheckMember()
