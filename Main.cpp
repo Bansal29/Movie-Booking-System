@@ -1,7 +1,7 @@
 #include <fstream>
 #include <iostream>
-#include <limits>
 #include <string>
+#include <vector>
 
 #define MOVIE_NUM 3
 
@@ -16,26 +16,22 @@ private:
     float rating;
 
     friend class Theater;
-    friend istream& operator>>(istream& file, Movie& m);
+
+    friend istream& operator>>(istream& file, Movie& m)
+    {
+        string temp;
+
+        getline(file, m.name);
+
+        getline(file, temp);
+        m.duration = stoi(temp);
+
+        getline(file, temp);
+        m.rating = stof(temp);
+
+        return file;
+    }
 };
-
-istream& operator>>(istream& file, Movie& m)
-{
-    string temp;
-
-    getline(file, m.name);
-
-    getline(file, temp);
-    m.duration = stoi(temp);
-
-    getline(file, temp);
-    m.rating = stof(temp);
-
-    // skips blank line
-    file.ignore(numeric_limits<streamsize>::max(), '\n');
-
-    return file;
-}
 
 class Theater
 {
@@ -123,8 +119,7 @@ int Theater::DisplayTimeSlots()
     cout << "Select a time slot" << endl;
     for (int i = 0; i < 5; i++)
     {
-        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to "
-             << timeSlot[i + 1] << ":00" << endl;
+        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to " << timeSlot[i + 1] << ":00" << endl;
     }
     cout << "Slot number: ";
     cin >> choice;
@@ -148,7 +143,6 @@ class Ticket
 {
 protected:
     int price;
-    // virtual void book() = 0;
 };
 
 // class Platinum : public Ticket
@@ -175,25 +169,19 @@ protected:
 class Customer
 {
 protected:
-    static int id;
     string name, phone, email;
 
 private:
-    void SetId() { id++; }
     void SetName();
     void SetPhone();
     void SetEmail();
 
 public:
     void SetDetails();
-    string GetName() { return name; }
-    string GetPhone() { return phone; }
-    string GetEmail() { return email; }
 };
 
 void Customer::SetDetails()
 {
-    SetId();
     SetName();
     SetPhone();
     SetEmail();
@@ -207,7 +195,7 @@ void Customer::SetName()
 
 void Customer::SetPhone()
 {
-    cout << "Enter your phone number : ";
+    cout << "Enter your phone number: ";
     cin >> phone;
 
     while (phone.length() != 10)
@@ -243,8 +231,6 @@ void Customer::SetEmail()
     }
 }
 
-int Customer::id = 0;
-
 class Member : Customer
 {
 private:
@@ -253,12 +239,12 @@ private:
 private:
     void SetAcctNum();
     void SetPassword();
-    void SaveRecord();
 
 public:
     void Register();
-    void DisplayDetails();
-    bool CheckMember();
+
+    friend istream& operator>>(istream& file, Member& m);
+    friend ostream& operator<<(ostream& file, Member& m);
 };
 
 void Member::Register()
@@ -266,8 +252,6 @@ void Member::Register()
     Customer::SetDetails();
     SetAcctNum();
     SetPassword();
-
-    SaveRecord();
 }
 
 void Member::SetAcctNum()
@@ -299,30 +283,31 @@ void Member::SetPassword()
     }
 }
 
-void Member::SaveRecord()
+istream& operator>>(istream& file, Member& m)
 {
-    ofstream memberFile("Members.txt", ios::app);
+    string temp;
+    getline(file, m.accountNumber);
+    getline(file, m.name);
+    getline(file, m.email);
+    getline(file, m.phone);
+    getline(file, m.password);
+    getline(file, temp);
 
-    if (memberFile.is_open())
-    {
-        memberFile << endl;
-        memberFile << id << endl;
-        memberFile << accountNumber << endl;
-        memberFile << name << endl;
-        memberFile << email << endl;
-        memberFile << phone << endl;
-        memberFile << password << endl;
-
-        cout << "Record saved successfully" << endl;
-    }
-    else
-    {
-        cout << "Couldn't open file. Does it exist?" << endl;
-    }
-
-    memberFile.close();
+    return file;
 }
-//
+
+ostream& operator<<(ostream& file, Member& m)
+{
+    file << m.accountNumber << endl;
+    file << m.name << endl;
+    file << m.email << endl;
+    file << m.phone << endl;
+    file << m.password << endl;
+    file << "----------" << endl;
+
+    return file;
+}
+
 // void Member::CheckMember()
 // {
 //     Member members[100];
