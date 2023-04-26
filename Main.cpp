@@ -119,7 +119,8 @@ int Theater::DisplayTimeSlots()
     cout << "Select a time slot" << endl;
     for (int i = 0; i < 5; i++)
     {
-        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to " << timeSlot[i + 1] << ":00" << endl;
+        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to "
+             << timeSlot[i + 1] << ":00" << endl;
     }
     cout << "Slot number: ";
     cin >> choice;
@@ -366,9 +367,12 @@ void MemberDatabase::Display()
 
     for (int i = 0; i < members.size() - 1; i++)
     {
-        cout << "\nAccount Number : " << members[i].accountNumber << "\nName           : " << members[i].name
-             << "\nPhone no.      : " << members[i].phone << "\nE-mail         : " << members[i].email
-             << "\n------------------------------------------------------" << endl;
+        cout << "\nAccount Number : " << members[i].accountNumber
+             << "\nName           : " << members[i].name
+             << "\nPhone no.      : " << members[i].phone
+             << "\nE-mail         : " << members[i].email
+             << "\n------------------------------------------------------"
+             << endl;
     }
 }
 
@@ -386,23 +390,6 @@ bool MemberDatabase::CheckMember(string name)
 
     return flag;
 }
-
-// void Member::CheckMember()
-// {
-//     Member members[100];
-//     int i = 0;
-//
-//     ifstream memberFile("Members.txt", ios::in);
-//
-//     if (memberFile.is_open())
-//     {
-//         while (!memberFile.eof())
-//         {
-//             memberFile >> members[i];
-//             i++;
-//         }
-//     }
-// }
 
 // helper functions
 
