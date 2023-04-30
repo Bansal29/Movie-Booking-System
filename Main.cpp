@@ -29,6 +29,8 @@ private:
         getline(file, temp);
         m.rating = stof(temp);
 
+        getline(file, temp);
+
         return file;
     }
 };
@@ -55,7 +57,7 @@ Theater::Theater()
     int i = 0;
     if (movieFile.is_open())
     {
-        while (!movieFile.eof())
+        while (movieFile.good())
         {
             movies[i].id = i + 1;
             movieFile >> movies[i];
@@ -119,8 +121,7 @@ int Theater::DisplayTimeSlots()
     cout << "Select a time slot" << endl;
     for (int i = 0; i < 5; i++)
     {
-        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to "
-             << timeSlot[i + 1] << ":00" << endl;
+        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to " << timeSlot[i + 1] << ":00" << endl;
     }
     cout << "Slot number: ";
     cin >> choice;
@@ -142,30 +143,84 @@ int Theater::DisplayTimeSlots()
 
 class Ticket
 {
-protected:
-    int price;
+private:
+    int timeSlot;
+    int movieID;
+    int seatNo, rowNo;
+    string type;
+
+public:
+    void SetDetails();
+    friend istream& operator>>(istream& file, Ticket& t);
+    friend ostream& operator<<(ostream& file, Ticket& t);
+    friend bool operator==(const Ticket& lhs, const Ticket& rhs);
 };
 
-// class Platinum : public Ticket
-// {
-// public:
-//     Platinum() { price = 1000; }
-//     void book();
-// };
-//
-// class Gold : public Ticket
-// {
-// public:
-//     Gold() { price = 500; }
-//     void book();
-// };
-//
-// class Silver : public Ticket
-// {
-// public:
-//     Silver() { price = 250; }
-//     void book();
-// };
+bool operator==(const Ticket& lhs, const Ticket& rhs)
+{
+    if (lhs.timeSlot == rhs.timeSlot && lhs.movieID == rhs.movieID && lhs.rowNo == rhs.rowNo &&
+        lhs.seatNo == rhs.seatNo && lhs.type == rhs.type)
+    {
+        return true;
+    }
+    return false;
+}
+
+void Ticket::SetDetails()
+{
+    cout << "Time Slot: ";
+    cin >> timeSlot;
+    cout << "Movie ID: ";
+    cin >> movieID;
+    cout << "Row No: ";
+    cin >> rowNo;
+    cout << "Seat No: ";
+    cin >> seatNo;
+    cout << "Type: ";
+    cin >> type;
+    cout << endl;
+}
+int i = 1;
+
+istream& operator>>(istream& file, Ticket& t)
+{
+    string temp;
+    try
+    {
+        getline(file, temp);
+        t.timeSlot = stoi(temp);
+
+        getline(file, temp);
+        t.movieID = stoi(temp);
+
+        getline(file, temp);
+        t.rowNo = stoi(temp);
+
+        getline(file, temp);
+        t.seatNo = stoi(temp);
+    }
+    catch (exception e)
+    {
+        cout << "Exception" << endl;
+    }
+
+    getline(file, t.type);
+    getline(file, temp);
+
+    return file;
+}
+
+ostream& operator<<(ostream& file, Ticket& t)
+{
+    file << t.timeSlot << endl;
+    file << t.movieID << endl;
+    file << t.rowNo << endl;
+    file << t.seatNo << endl;
+    file << t.type << endl;
+    file << "--------" << endl;
+
+    return file;
+}
 
 class Customer
 {
@@ -309,6 +364,7 @@ ostream& operator<<(ostream& file, Member& m)
 
     return file;
 }
+
 class MemberDatabase
 {
 private:
@@ -328,7 +384,7 @@ void MemberDatabase::ReadRecords()
 
     if (memberFile.is_open())
     {
-        while (!memberFile.eof())
+        while (memberFile.good())
         {
             memberFile >> member;
             members.push_back(member);
@@ -365,21 +421,18 @@ void MemberDatabase::Display()
          << "                   MEMBER INFORMATION                 \n"
          << "======================================================\n";
 
-    for (int i = 0; i < members.size() - 1; i++)
+    for (int i = 0; i < members.size(); i++)
     {
-        cout << "\nAccount Number : " << members[i].accountNumber
-             << "\nName           : " << members[i].name
-             << "\nPhone no.      : " << members[i].phone
-             << "\nE-mail         : " << members[i].email
-             << "\n------------------------------------------------------"
-             << endl;
+        cout << "\nAccount Number : " << members[i].accountNumber << "\nName           : " << members[i].name
+             << "\nPhone no.      : " << members[i].phone << "\nE-mail         : " << members[i].email
+             << "\n------------------------------------------------------" << endl;
     }
 }
 
 bool MemberDatabase::CheckMember(string name)
 {
     bool flag = false;
-    for (int i = 0; i < members.size() - 1; i++)
+    for (int i = 0; i < members.size(); i++)
     {
         if (name == members[i].name)
         {
