@@ -121,7 +121,8 @@ int Theater::DisplayTimeSlots()
     cout << "Select a time slot" << endl;
     for (int i = 0; i < 5; i++)
     {
-        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to " << timeSlot[i + 1] << ":00" << endl;
+        cout << "\t[" << i + 1 << "] " << timeSlot[i] << ":00 to "
+             << timeSlot[i + 1] << ":00" << endl;
     }
     cout << "Slot number: ";
     cin >> choice;
@@ -154,12 +155,14 @@ public:
     friend istream& operator>>(istream& file, Ticket& t);
     friend ostream& operator<<(ostream& file, Ticket& t);
     friend bool operator==(const Ticket& lhs, const Ticket& rhs);
+    friend class Booking;
 };
 
 bool operator==(const Ticket& lhs, const Ticket& rhs)
 {
-    if (lhs.timeSlot == rhs.timeSlot && lhs.movieID == rhs.movieID && lhs.rowNo == rhs.rowNo &&
-        lhs.seatNo == rhs.seatNo && lhs.type == rhs.type)
+    if (lhs.timeSlot == rhs.timeSlot && lhs.movieID == rhs.movieID &&
+        lhs.rowNo == rhs.rowNo && lhs.seatNo == rhs.seatNo &&
+        lhs.type == rhs.type)
     {
         return true;
     }
@@ -220,6 +223,112 @@ ostream& operator<<(ostream& file, Ticket& t)
     file << "--------" << endl;
 
     return file;
+}
+
+class Booking
+{
+private:
+    int bookedSeats[5 + 1][3 + 1][8 + 1][10 + 1] = {0};
+    vector<Ticket> tickets[3 + 1];
+
+private:
+    int CheckSeat(int timeSlot, int mId, int row, int seat);
+    void ReserveSeat(Ticket t);
+    void RemoveTicketFromFile(Ticket t);
+
+public:
+    Booking();
+    void BookTicket();
+    void CancelTicket(Ticket t);
+};
+
+Booking::Booking()
+{
+    ifstream booking("Booked.txt", ios::in);
+
+    Ticket t;
+
+    if (booking.is_open())
+    {
+        while (booking >> t)
+        {
+            tickets[t.movieID].push_back(t);
+            bookedSeats[t.timeSlot][t.movieID][t.rowNo][t.seatNo] = 1;
+        }
+        booking.close();
+    }
+}
+
+void Booking::BookTicket()
+{
+    Ticket t;
+    t.SetDetails();
+    ReserveSeat(t);
+}
+
+int Booking::CheckSeat(int timeSlot, int mId, int row, int seat)
+{
+    // cout << "bookedSeats[" << timeSlot << "][" << mId << "][" << row <<
+    // "]["
+    // << seat << "] = " << bookedSeats[timeSlot][mId][row][seat] << endl;
+    return bookedSeats[timeSlot][mId][row][seat];
+}
+
+void Booking::ReserveSeat(Ticket t)
+{
+    ofstream booking("Booked.txt", ios::app);
+
+    if (CheckSeat(t.timeSlot, t.movieID, t.rowNo, t.seatNo) == 0)
+    {
+        booking << t;
+        bookedSeats[t.timeSlot][t.movieID][t.rowNo][t.seatNo] = 1;
+    }
+    else
+    {
+        cout << "Seat already taken" << endl;
+    }
+}
+
+void Booking::RemoveTicketFromFile(Ticket t)
+{
+    int flag = 0;
+    ofstream temp("temp.txt", ios::out);
+
+    for (int i = 1; i < 4; i++)
+    {
+        for (int j = 0; j < tickets[i].size(); j++)
+        {
+            if (!(tickets[i][j] == t))
+            {
+                temp << tickets[i][j];
+                flag = 1;
+            }
+        }
+    }
+    temp.close();
+
+    if (flag)
+    {
+        string line;
+        ifstream temp("temp.txt", ios::in);
+        ofstream booking("Booked.txt", ios::trunc);
+
+        while (getline(temp, line))
+        {
+            cout << line << endl;
+            booking << line << endl;
+        }
+        cout << "Ticket Cancelled" << endl;
+    }
+}
+
+void Booking::CancelTicket(Ticket t)
+{
+    if (CheckSeat(t.timeSlot, t.movieID, t.rowNo, t.seatNo) == 1)
+    {
+        bookedSeats[t.timeSlot][t.movieID][t.rowNo][t.seatNo] = 0;
+        RemoveTicketFromFile(t);
+    }
 }
 
 class Customer
@@ -423,9 +532,12 @@ void MemberDatabase::Display()
 
     for (int i = 0; i < members.size(); i++)
     {
-        cout << "\nAccount Number : " << members[i].accountNumber << "\nName           : " << members[i].name
-             << "\nPhone no.      : " << members[i].phone << "\nE-mail         : " << members[i].email
-             << "\n------------------------------------------------------" << endl;
+        cout << "\nAccount Number : " << members[i].accountNumber
+             << "\nName           : " << members[i].name
+             << "\nPhone no.      : " << members[i].phone
+             << "\nE-mail         : " << members[i].email
+             << "\n------------------------------------------------------"
+             << endl;
     }
 }
 
