@@ -1,9 +1,12 @@
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
 #define MOVIE_NUM 3
+#define ROW_NUM 6
+#define SEAT_NUM 10
 
 using namespace std;
 
@@ -15,12 +18,29 @@ private:
     int duration;
     float rating;
 
+private:
+    void SetDetails();
     friend class Theater;
+    friend istream& operator>>(istream& file, Movie& m);
+    friend ostream& operator<<(ostream& file, Movie& m);
+};
 
-    friend istream& operator>>(istream& file, Movie& m)
+void Movie::SetDetails()
+{
+    cout << "Movie Name: ";
+    cin >> name;
+    cout << "Duration: ";
+    cin >> duration;
+    cout << "Rating: ";
+    cin >> rating;
+}
+
+istream& operator>>(istream& file, Movie& m)
+{
+    string temp;
+
+    try
     {
-        string temp;
-
         getline(file, m.name);
 
         getline(file, temp);
@@ -30,10 +50,24 @@ private:
         m.rating = stof(temp);
 
         getline(file, temp);
-
-        return file;
     }
-};
+    catch (...)
+    {
+        cout << "Exception(in Movie)" << endl;
+    }
+
+    return file;
+}
+
+ostream& operator<<(ostream& file, Movie& m)
+{
+    file << m.name << endl;
+    file << m.duration << endl;
+    file << m.rating << endl;
+    file << "--------" << endl;
+
+    return file;
+}
 
 class Theater
 {
@@ -45,6 +79,8 @@ private:
 
 public:
     Theater();
+    void AddMovies();
+    void RemoveMovieFromFile();
     int DisplayMovies();
     void DisplayMovieDetails(int id);
     int DisplayTimeSlots();
@@ -67,6 +103,41 @@ Theater::Theater()
     movieFile.close();
 }
 
+void Theater::AddMovies()
+{
+    ofstream movieFile("Movies.txt", ios::app);
+    Movie m;
+    m.SetDetails();
+    movieFile << m;
+}
+
+void Theater::RemoveMovieFromFile()
+{
+    ifstream movieFile("Movies.txt", ios::in);
+    ofstream temp("temp.txt", ios::out);
+
+    Movie m;
+    m.SetDetails();
+
+    Movie curr;
+
+    if (movieFile.is_open())
+    {
+        while (movieFile >> curr)
+        {
+            if (!(curr.name == m.name))
+            {
+                temp << curr;
+            }
+        }
+    }
+    movieFile.close();
+    temp.close();
+
+    remove("Movies.txt");
+    rename("temp.txt", "Movies.txt");
+}
+
 int Theater::DisplayMovies()
 {
     // Movie selectedMovie;
@@ -85,14 +156,9 @@ int Theater::DisplayMovies()
     {
         if (choice > 0 && choice <= MOVIE_NUM)
         {
-            DisplayTimeSlots();
-            DisplayMovieDetails(choice);
             return choice;
         }
-        else
-        {
-            throw choice;
-        }
+        throw choice;
     }
     catch (int choice)
     {
@@ -150,12 +216,17 @@ private:
     int seatNo, rowNo;
     string type;
 
-public:
-    void SetDetails();
+private:
+    int SetRow();
+    void SetSeat();
+    void SetType(int row);
     friend istream& operator>>(istream& file, Ticket& t);
     friend ostream& operator<<(ostream& file, Ticket& t);
     friend bool operator==(const Ticket& lhs, const Ticket& rhs);
     friend class Booking;
+
+public:
+    void SetDetails(int slot, int mno);
 };
 
 bool operator==(const Ticket& lhs, const Ticket& rhs)
@@ -169,19 +240,53 @@ bool operator==(const Ticket& lhs, const Ticket& rhs)
     return false;
 }
 
-void Ticket::SetDetails()
+void Ticket::SetDetails(int slot, int mno)
 {
-    cout << "Time Slot: ";
-    cin >> timeSlot;
-    cout << "Movie ID: ";
-    cin >> movieID;
+    timeSlot = slot;
+    movieID = mno;
+    int row = SetRow();
+    SetSeat();
+    SetType(row);
+}
+
+int Ticket::SetRow()
+{
     cout << "Row No: ";
     cin >> rowNo;
+    while (rowNo <= 0 || rowNo > ROW_NUM)
+    {
+        cout << "Enter the correct row no: ";
+        cin >> rowNo;
+    }
+    return rowNo;
+}
+
+void Ticket::SetSeat()
+{
     cout << "Seat No: ";
     cin >> seatNo;
-    cout << "Type: ";
-    cin >> type;
-    cout << endl;
+    while (seatNo <= 0 || seatNo > SEAT_NUM)
+    {
+        cout << "Enter the correct seat no: ";
+        cin >> seatNo;
+    }
+}
+
+void Ticket::SetType(int rowNo)
+{
+    if (rowNo <= 2)
+    {
+        type = "Platinum";
+    }
+    else if (rowNo > 2 && rowNo <= 4)
+    {
+        type = "Gold";
+    }
+    else if (rowNo > 4 && rowNo <= 6)
+    {
+        type = "Silver";
+    }
+    cout << "Type: " << type << endl << endl;
 }
 
 istream& operator>>(istream& file, Ticket& t)
@@ -203,7 +308,7 @@ istream& operator>>(istream& file, Ticket& t)
     }
     catch (exception e)
     {
-        cout << "Exception" << endl;
+        cout << "Exception(in Ticket)" << endl;
     }
 
     getline(file, t.type);
@@ -227,7 +332,7 @@ ostream& operator<<(ostream& file, Ticket& t)
 class Booking
 {
 private:
-    int bookedSeats[5 + 1][3 + 1][8 + 1][10 + 1] = {0};
+    int bookedSeats[5 + 1][MOVIE_NUM + 1][ROW_NUM + 1][SEAT_NUM + 1] = {0};
 
 private:
     int CheckSeat(int timeSlot, int mId, int row, int seat);
@@ -236,8 +341,9 @@ private:
 
 public:
     Booking();
-    void BookTicket();
+    void BookTicket(int slot, int mno);
     void CancelTicket(Ticket t);
+    void DisplayAvailableSeats(int timeSlot, int mId);
 };
 
 Booking::Booking()
@@ -256,10 +362,10 @@ Booking::Booking()
     }
 }
 
-void Booking::BookTicket()
+void Booking::BookTicket(int slot, int mno)
 {
     Ticket t;
-    t.SetDetails();
+    t.SetDetails(slot, mno);
     ReserveSeat(t);
 }
 
@@ -285,8 +391,6 @@ void Booking::ReserveSeat(Ticket t)
 
 void Booking::RemoveTicketFromFile(Ticket t)
 {
-    int flag = 0;
-
     ifstream booking("Booked.txt", ios::in);
     ofstream temp("temp.txt", ios::out);
 
@@ -306,6 +410,7 @@ void Booking::RemoveTicketFromFile(Ticket t)
 
     remove("Booked.txt");
     rename("temp.txt", "Booked.txt");
+    cout << "Ticket Cancelled Successfully" << endl;
 }
 
 void Booking::CancelTicket(Ticket t)
@@ -315,6 +420,63 @@ void Booking::CancelTicket(Ticket t)
         bookedSeats[t.timeSlot][t.movieID][t.rowNo][t.seatNo] = 0;
         RemoveTicketFromFile(t);
     }
+    else if (CheckSeat(t.timeSlot, t.movieID, t.rowNo, t.seatNo) == 0)
+    {
+        cout << "Ticket doesn't exist in our database. Did you enter the "
+                "correct details?"
+             << endl;
+    }
+}
+
+void Booking::DisplayAvailableSeats(int timeSlot, int mId)
+{
+    // system("clear");
+    int skip = 0;
+
+    for (int i = 1; i <= SEAT_NUM; i++)
+    {
+        cout << "\t" << i;
+    }
+    cout << endl << endl;
+
+    for (int i = 1; i <= ROW_NUM; i++)
+    {
+        if (i <= 2 && skip % 2 == 0)
+        {
+            cout << "[Platinum]" << endl;
+            skip++;
+        }
+        else if (i > 2 && i <= 4 && skip % 2 == 1)
+        {
+            cout << "[Gold]" << endl;
+            skip++;
+        }
+        else if (i > 4 && i <= 6 && skip % 2 == 0)
+        {
+            cout << "[Silver]" << endl;
+            skip++;
+        }
+        char c = i + 64;
+        cout << c << ": ";
+
+        for (int j = 1; j <= SEAT_NUM; j++)
+        {
+            if (CheckSeat(timeSlot, mId, i, j))
+            {
+                cout << "\tX";
+            }
+            else
+            {
+                cout << "\tO";
+            }
+        }
+        cout << endl << endl;
+    }
+    cout << "\t\t\t-----------------------------------" << endl;
+    cout << "\t\t\t     All Eyes This Way Please!" << endl;
+    cout << endl << endl;
+    cout << "O: Seat Available" << endl;
+    cout << "X: Seat Taken" << endl << endl;
 }
 
 class Customer
@@ -381,14 +543,12 @@ void Customer::SetEmail()
         cin >> email;
     }
 }
-
 class Member : Customer
 {
 private:
     string accountNumber, password;
 
 private:
-    void SetAcctNum();
     void SetPassword();
 
 public:
@@ -400,14 +560,11 @@ public:
 
 void Member::Register()
 {
+    cout << endl;
+    cout << "Registering for Membership:" << endl;
     Customer::SetDetails();
-    SetAcctNum();
-    SetPassword();
-}
-
-void Member::SetAcctNum()
-{
     accountNumber = to_string((rand() % 9999) + 10000);
+    SetPassword();
 }
 
 void Member::SetPassword()
@@ -463,14 +620,20 @@ class MemberDatabase
 private:
     vector<Member> members;
 
+private:
+    Member GetMember(string name);
+
 public:
-    void ReadRecords();
+    MemberDatabase();
+    void Display(Member m);
+    void DisplayAllRecords();
     void SaveRecord(Member m);
-    void Display();
     bool CheckMember(string name);
+    void Login(string name);
+    bool CheckPassword(Member m, string password);
 };
 
-void MemberDatabase::ReadRecords()
+MemberDatabase::MemberDatabase()
 {
     Member member;
     ifstream memberFile("Members.txt", ios::in);
@@ -482,12 +645,19 @@ void MemberDatabase::ReadRecords()
             members.push_back(member);
         }
     }
-    else
-    {
-        cout << "Couldn't open the file" << endl;
-    }
 
     memberFile.close();
+}
+
+Member MemberDatabase::GetMember(string name)
+{
+    for (int i = 0; i < members.size(); i++)
+    {
+        if (name == members[i].name)
+        {
+            return members[i];
+        }
+    }
 }
 
 void MemberDatabase::SaveRecord(Member m)
@@ -497,17 +667,14 @@ void MemberDatabase::SaveRecord(Member m)
     if (memberFile.is_open())
     {
         memberFile << m;
+        members.push_back(m);
         cout << "Record saved successfully" << endl;
-    }
-    else
-    {
-        cout << "Couldn't open file. Does it exist?" << endl;
     }
 
     memberFile.close();
 }
 
-void MemberDatabase::Display()
+void MemberDatabase::DisplayAllRecords()
 {
     cout << "======================================================\n"
          << "                   MEMBER INFORMATION                 \n"
@@ -515,13 +682,26 @@ void MemberDatabase::Display()
 
     for (int i = 0; i < members.size(); i++)
     {
-        cout << "\nAccount Number : " << members[i].accountNumber
-             << "\nName           : " << members[i].name
-             << "\nPhone no.      : " << members[i].phone
-             << "\nE-mail         : " << members[i].email
-             << "\n------------------------------------------------------"
+        cout << "Account Number : " << members[i].accountNumber << endl;
+        cout << "Name           : " << members[i].name << endl;
+        cout << "Phone no.      : " << members[i].phone << endl;
+        cout << "E-mail         : " << members[i].email << endl;
+        cout << "------------------------------------------------------"
              << endl;
     }
+}
+
+void MemberDatabase::Display(Member m)
+{
+    cout << "======================================================\n"
+         << "                   MEMBER INFORMATION                 \n"
+         << "======================================================\n";
+
+    cout << "Account Number : " << m.accountNumber << endl;
+    cout << "Name           : " << m.name << endl;
+    cout << "Phone no.      : " << m.phone << endl;
+    cout << "E-mail         : " << m.email << endl;
+    cout << "------------------------------------------------------" << endl;
 }
 
 bool MemberDatabase::CheckMember(string name)
@@ -537,6 +717,39 @@ bool MemberDatabase::CheckMember(string name)
     }
 
     return flag;
+}
+
+bool MemberDatabase::CheckPassword(Member m, string password)
+{
+    if (m.password == password)
+    {
+        return true;
+    }
+    return false;
+}
+
+void MemberDatabase::Login(string name)
+{
+    string password;
+    Member m = GetMember(name);
+
+    if (CheckMember(m.name))
+    {
+        cout << "Password: ";
+        cin >> password;
+        if (CheckPassword(m, password))
+        {
+            cout << "Logged In successfully" << endl;
+        }
+        else
+        {
+            cout << "Wrong password" << endl;
+        }
+    }
+    else
+    {
+        cout << "Member doesn't exist. Signup first." << endl;
+    }
 }
 
 // helper functions
@@ -577,15 +790,49 @@ void Title()
     cout << endl;
 }
 
-int MainMenu()
+int MemberMenu()
 {
-    int choice;
+    int choice = 0;
+    string name;
+    MemberDatabase db;
 
-    cout << "[1] Login(for Members)" << endl;
-    cout << "[2] Signup for Membership" << endl;
-    cout << "[3] Continue as guest" << endl;
-    cout << "Choice: ";
-    cin >> choice;
+    while (choice != 4)
+    {
+        cout << "[1] Login(for Members)" << endl;
+        cout << "[2] Signup for Membership" << endl;
+        cout << "[3] Continue as guest" << endl;
+        cout << "Choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+        {
+            cout << "Name: ";
+            cin >> name;
+            db.Login(name);
+            break;
+        }
+
+        case 2:
+        {
+            Member m;
+            m.Register();
+            db.SaveRecord(m);
+            break;
+        }
+
+        case 3:
+        {
+            Customer c;
+            c.SetDetails();
+            break;
+        }
+
+        default:
+            cout << "Invalid choice" << endl;
+        }
+    }
 
     return choice;
 }
@@ -594,21 +841,15 @@ int main()
 {
     srand(time(0));  // genrates random values
     Theater theater;
+    Booking booking;
+    int slot, mno, ch = 0;
 
-    int ch = 0;
-
-    while (ch != 3)
+    while (ch != 4)
     {
         // system("clear");
         // system("CLS");
         Title();
-
-        switch (MainMenu())
-        {
-        case 1:
-        {
-        }
-        }
+        MemberMenu();
 
         cout << endl;
         cout << "[1] Book a Ticket" << endl;
@@ -622,13 +863,30 @@ int main()
         {
         case 1:
         {
-            theater.DisplayMovies();
+            mno = theater.DisplayMovies();
+            if (mno != -1)
+            {
+                slot = theater.DisplayTimeSlots();
+                if (slot != -1)
+                {
+                    booking.DisplayAvailableSeats(slot, mno);
+                    booking.BookTicket(slot, mno);
+                }
+            }
             break;
         }
 
         case 2:
         {
-            cout << "Cancelling the ticket" << endl;
+            system("cls");
+            Ticket t;
+            cout << "Enter the details of ticket to be cancelled" << endl;
+            cout << "Timeslot: ";
+            cin >> slot;
+            cout << "Movie Number: ";
+            cin >> mno;
+            t.SetDetails(slot, mno);
+            booking.CancelTicket(t);
             break;
         }
 
