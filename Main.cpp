@@ -183,7 +183,6 @@ void Ticket::SetDetails()
     cin >> type;
     cout << endl;
 }
-int i = 1;
 
 istream& operator>>(istream& file, Ticket& t)
 {
@@ -229,7 +228,6 @@ class Booking
 {
 private:
     int bookedSeats[5 + 1][3 + 1][8 + 1][10 + 1] = {0};
-    vector<Ticket> tickets[3 + 1];
 
 private:
     int CheckSeat(int timeSlot, int mId, int row, int seat);
@@ -252,7 +250,6 @@ Booking::Booking()
     {
         while (booking >> t)
         {
-            tickets[t.movieID].push_back(t);
             bookedSeats[t.timeSlot][t.movieID][t.rowNo][t.seatNo] = 1;
         }
         booking.close();
@@ -268,9 +265,6 @@ void Booking::BookTicket()
 
 int Booking::CheckSeat(int timeSlot, int mId, int row, int seat)
 {
-    // cout << "bookedSeats[" << timeSlot << "][" << mId << "][" << row <<
-    // "]["
-    // << seat << "] = " << bookedSeats[timeSlot][mId][row][seat] << endl;
     return bookedSeats[timeSlot][mId][row][seat];
 }
 
@@ -292,34 +286,26 @@ void Booking::ReserveSeat(Ticket t)
 void Booking::RemoveTicketFromFile(Ticket t)
 {
     int flag = 0;
+
+    ifstream booking("Booked.txt", ios::in);
     ofstream temp("temp.txt", ios::out);
 
-    for (int i = 1; i < 4; i++)
+    Ticket curr;
+    if (booking.is_open())
     {
-        for (int j = 0; j < tickets[i].size(); j++)
+        while (booking >> curr)
         {
-            if (!(tickets[i][j] == t))
+            if (!(curr == t))
             {
-                temp << tickets[i][j];
-                flag = 1;
+                temp << curr;
             }
         }
     }
+    booking.close();
     temp.close();
 
-    if (flag)
-    {
-        string line;
-        ifstream temp("temp.txt", ios::in);
-        ofstream booking("Booked.txt", ios::trunc);
-
-        while (getline(temp, line))
-        {
-            cout << line << endl;
-            booking << line << endl;
-        }
-        cout << "Ticket Cancelled" << endl;
-    }
+    remove("Booked.txt");
+    rename("temp.txt", "Booked.txt");
 }
 
 void Booking::CancelTicket(Ticket t)
@@ -407,10 +393,9 @@ private:
 
 public:
     void Register();
-
-    friend class MemberDatabase;
     friend istream& operator>>(istream& file, Member& m);
     friend ostream& operator<<(ostream& file, Member& m);
+    friend class MemberDatabase;
 };
 
 void Member::Register()
@@ -422,7 +407,6 @@ void Member::Register()
 
 void Member::SetAcctNum()
 {
-    srand(time(0));
     accountNumber = to_string((rand() % 9999) + 10000);
 }
 
@@ -493,9 +477,8 @@ void MemberDatabase::ReadRecords()
 
     if (memberFile.is_open())
     {
-        while (memberFile.good())
+        while (memberFile >> member)
         {
-            memberFile >> member;
             members.push_back(member);
         }
     }
@@ -609,6 +592,7 @@ int MainMenu()
 
 int main()
 {
+    srand(time(0));  // genrates random values
     Theater theater;
 
     int ch = 0;
