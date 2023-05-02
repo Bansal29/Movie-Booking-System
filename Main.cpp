@@ -655,7 +655,7 @@ MemberDatabase::MemberDatabase()
 
     memberFile.close();
 }
-
+// xyz
 Member MemberDatabase::GetMember(string name)
 {
     for (int i = 0; i < members.size(); i++)
